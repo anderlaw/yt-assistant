@@ -126,7 +126,7 @@ const downloadFromCachedData = async () => {
   }
 };
 
-const cron_str = '00 00 15 * * *';//每天下午三点
+const cron_str = '00 10 15 * * *';//每天下午三点
 const job = new CronJob(
   cron_str, // cronTime
   function () {
@@ -218,6 +218,4 @@ const job = new CronJob(
   false, // start
   "UTC+8" // timeZone
 );
-const dt = cron.sendAt("00 47 14 * * *");
-console.log(`The job would run at: ${dt.toISO()}`);
 job.start();
