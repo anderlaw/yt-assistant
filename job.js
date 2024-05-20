@@ -208,7 +208,7 @@ const jobFunction = () => {
     writeLog("Job执行完毕！\n");
   });
 };
-const cron_str = "00 10 20 * * *"; //每天下午五点
+const cron_str = "00 35 06 * * *"; //每天下午五点
 const job = new CronJob(
   cron_str, // cronTime
   jobFunction, // onTick
