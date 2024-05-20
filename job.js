@@ -123,7 +123,9 @@ const jobFunction = () => {
   request(
     "http://localhost:3000/api/get-subscribed-channels",
     async (error, response, body) => {
-      writeLog("获取所有频道",body);
+      writeLog("获取所有频道");
+      writeLog(body);
+      writeLog(body);
       const channel_ids = JSON.parse(body);
       //tobe:存放视频信息的数组
       const temp_videoInfo_arr = [];
