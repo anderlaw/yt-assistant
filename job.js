@@ -54,10 +54,12 @@ const findFitVideoAndAudioFormatId = (videoId) => {
         writeLog("提取到数据！");
         const videoInfo = {
           id: videoData.id,
+          release_date:videoData.release_date,
           channel_id: videoData.channel_id,
           title: videoData.title,
           description: videoData.description,
           duration: videoData.duration,
+          duration_string:videoData.duration_string,
           view_count: videoData.view_count,
           video_format,
           audio_format,
