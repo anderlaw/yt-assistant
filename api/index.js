@@ -7,6 +7,8 @@ const queryChannel = require("../services/query-channel");
 const searchChannel = require("../services/search-channel");
 const addChannel = require("../services/add-channel");
 
+const getAllChannels = require("../services/get-all-channels");
+
 //用户注册
 router.post("/add-user", (req, res) => {
   addUser(
@@ -30,6 +32,12 @@ router.get("/get-user", (req, res) => {
       res.json(data);
     }
   );
+});
+// 获取用户订阅的所有频道
+router.get("/get-subscribed-channels", (req, res) => {
+  getAllChannels((channelIds) => {
+    res.send(channelIds);
+  });
 });
 // 搜索频道：根据关键字或者链接搜索频道
 router.get("/query-channel", (req, res) => {
