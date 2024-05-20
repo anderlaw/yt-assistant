@@ -1,0 +1,50 @@
+Mon, 20 May 2024 08:42:08 GMT
+Job开始执行
+
+Mon, 20 May 2024 08:42:08 GMT
+-> 频道列表 UCBKDRq35-L8xev4O7ZqBeLg,UCO3pO3ykAUybrjv3RBbXEHw,UCh-2mprMYpQzntogxnXzbig
+Mon, 20 May 2024 08:42:08 GMT
+---> 获取频道 UCBKDRq35-L8xev4O7ZqBeLg 视频列表
+Mon, 20 May 2024 08:49:00 GMT
+Job开始执行
+
+Mon, 20 May 2024 08:49:00 GMT
+-> 频道列表 UCBKDRq35-L8xev4O7ZqBeLg,UCO3pO3ykAUybrjv3RBbXEHw,UCh-2mprMYpQzntogxnXzbig
+Mon, 20 May 2024 08:49:00 GMT
+---> 获取频道 UCBKDRq35-L8xev4O7ZqBeLg 视频列表
+Mon, 20 May 2024 08:49:05 GMT
+<--- 频道 UCBKDRq35-L8xev4O7ZqBeLg 视频列表成功获取
+Mon, 20 May 2024 08:49:05 GMT
+---> 获取频道 UCBKDRq35-L8xev4O7ZqBeLg 直播回放列表
+Mon, 20 May 2024 08:49:09 GMT
+<--- 频道 UCBKDRq35-L8xev4O7ZqBeLg 直播回放列表成功获取
+Mon, 20 May 2024 08:49:09 GMT
+------> 提取视频文件信息 Fka3t4BSocU
+Mon, 20 May 2024 08:49:31 GMT
+提取到数据！
+Mon, 20 May 2024 08:49:31 GMT
+<------ 成功提取视频文件 Fka3t4BSocU
+Mon, 20 May 2024 08:49:31 GMT
+进度：1/10
+Mon, 20 May 2024 08:49:31 GMT
+------> 提取视频文件信息 AO4Rb_TuMlY
+Mon, 20 May 2024 08:49:48 GMT
+提取到数据！
+Mon, 20 May 2024 08:49:48 GMT
+<------ 成功提取视频文件 AO4Rb_TuMlY
+Mon, 20 May 2024 08:49:48 GMT
+进度：2/10
+Mon, 20 May 2024 08:49:48 GMT
+------> 提取视频文件信息 kdFd7PoccV8
+Mon, 20 May 2024 08:50:05 GMT
+提取到数据！
+Mon, 20 May 2024 08:50:05 GMT
+<------ 成功提取视频文件 kdFd7PoccV8
+Mon, 20 May 2024 08:50:05 GMT
+进度：3/10
+Mon, 20 May 2024 08:50:05 GMT
+------> 提取视频文件信息 EEq3s6YZ8wo
+Mon, 20 May 2024 08:50:29 GMT
+失败一次
+Mon, 20 May 2024 08:50:45 GMT
+提取到数据！

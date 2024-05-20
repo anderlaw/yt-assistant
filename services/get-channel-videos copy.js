@@ -1,9 +1,8 @@
 const exec = require("child_process").execSync;
-const { ytdlpPath } = require("./CONST");
 
 const sep_mark = ":##:";
 const main = (link, cb) => {
-  const execString = `${ytdlpPath} -O "%(id)s${sep_mark}%(title)s${sep_mark}%(duration)s" --flat-playlist -s  ${link} -I 1:5`;
+  const execString = `yt-dlp -O "%(id)s${sep_mark}%(title)s${sep_mark}%(duration)s" --flat-playlist -s  ${link} -I 1:5`;
 
   try {
     stdout = exec(execString, {
