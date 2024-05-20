@@ -212,7 +212,7 @@ const jobFunction = () => {
   });
   
 };
-const cron_str = "00 00 17 * * *"; //每天下午五点
+const cron_str = "00 20 17 * * *"; //每天下午五点
 const job = new CronJob(
   cron_str, // cronTime
   jobFunction, // onTick
