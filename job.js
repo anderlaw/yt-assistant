@@ -1,4 +1,5 @@
 const exec = require("child_process").execSync;
+const execAsync = require("child_process").exec;
 const CronJob = require("cron").CronJob;
 const cron = require("cron");
 const fs = require("fs");
@@ -81,36 +82,30 @@ const downloadVideoAudio = (videoInfo) => {
   };
   return new Promise((resolve, reject) => {
     //new start
-    let stdout = "";
-    try {
-      stdout = exec(
-        `yt-dlp https://www.youtube.com/watch?v=${videoInfo.id} -f ${videoInfo.video_format.format_id},${videoInfo.audio_format.format_id} -o ${output_format_templ}`,
-        {
-          maxBuffer: 1024 * 1024 * 1024,
-          // timeout:
+    execAsync(
+      `yt-dlp https://www.youtube.com/watch?v=${videoInfo.id} -f ${videoInfo.video_format.format_id},${videoInfo.audio_format.format_id} -o ${output_format_templ}`,
+      {
+        maxBuffer: 1024 * 1024 * 1024,
+      },
+      (error, stdout, stderr) => {
+        if (stderr) {
+          writeLog(`stderr: ${stderr}`);
         }
-      );
-    } catch (e) {
-      writeLog("失败一次");
-    } finally {
-      if (
-        stdout &&
-        fs.existsSync("./channels/" + videoInfo.id) &&
-        fs.readdirSync("./channels/" + videoInfo.id).length === 2
-      ) {
-        writeLog(`<---------文件下载成功${videoInfo.title}`);
-        resolve(videoInfo);
-      } else {
-        // 隔一秒后重试
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 1000);
-        }).then((res) => {
+        if (error) {
+          writeLog(
+            `<---------文件下载失败${videoInfo.id}:\n${error}，即将重试！`
+          );
           return downloadVideoAudio(videoInfo);
-        });
+        } else if (
+          stdout &&
+          fs.existsSync("./channels/" + videoInfo.id) &&
+          fs.readdirSync("./channels/" + videoInfo.id).length === 2
+        ) {
+          writeLog(`<---------文件下载成功${videoInfo.title}`);
+          resolve(videoInfo);
+        }
       }
-    }
+    );
   });
 };
 const downloadFromCachedData = async () => {
@@ -210,13 +205,14 @@ const jobFunction = () => {
     }
     writeLog("Job执行完毕！\n");
   });
-  
 };
-const cron_str = "00 30 17 * * *"; //每天下午五点
+const cron_str = "00 10 20 * * *"; //每天下午五点
 const job = new CronJob(
   cron_str, // cronTime
   jobFunction, // onTick
-  null, // onComplete
+  () => {
+    writeLog("on complete Job执行完毕！\n");
+  }, // onComplete
   false, // start
   "UTC+8" // timeZone
 );
