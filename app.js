@@ -12,7 +12,6 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("Access-Control-Allow-Methods", "*");
-  res.setHeader("Content-Type", "application/json");
   next();
 });
 const apiRouter = require("./api/index.js");
