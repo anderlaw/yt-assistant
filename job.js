@@ -52,7 +52,7 @@ const findFitVideoAndAudioFormatId = (videoId, logger) => {
         };
         resolve(videoInfo);
       } else {
-        return findFitVideoAndAudioFormatId(videoId,logger);
+        return findFitVideoAndAudioFormatId(videoId, logger);
       }
     }
   });
@@ -80,7 +80,7 @@ const downloadVideoAudio = (videoInfo, logger) => {
         }
         if (error) {
           logger.write("download_file", `失败${error},即将重试！`);
-          return downloadVideoAudio(videoInfo,logger);
+          return downloadVideoAudio(videoInfo, logger);
         } else if (
           stdout &&
           fs.existsSync("./channels/" + videoInfo.id) &&
@@ -112,7 +112,7 @@ const insertVideoByApi = async (videoInfo) => {
         },
       },
       function (error, response, body) {
-        if(error) return reject(error);
+        if (error) return reject(error);
         if (
           response.statusCode === 200 &&
           JSON.parse(body) &&
@@ -167,8 +167,9 @@ const jobFunction = () => {
         const video_items = videosOptStr
           .split("\n")
           .filter((str) => str.trim())
-          .map((item) => item.split(sep_mark));
-
+          .map((item) => item.split(sep_mark))
+          //fix: 过滤掉即将开始（尚未开始）的项目  "live_status:is_upcoming",不是"NA",
+          .filter((item) => item[3] == "NA");
         //查询直播回放视频
 
         logger.write("download_streamlist", `开始：${channel_id}`);
@@ -180,9 +181,9 @@ const jobFunction = () => {
         let stream_items = streamsOptStr
           .split("\n")
           .filter((str) => str.trim())
-          .map((item) => item.split(sep_mark));
-        //过滤掉正在直播的视频:duration字段表示为NA未知
-        stream_items = stream_items.filter((item) => item[2] !== "NA");
+          //过滤掉正在直播的视频:duration字段表示为NA未知
+          .map((item) => item.split(sep_mark))
+          .filter((item) => item[2] !== "NA");
 
         //合并视频和直播并去掉已经下载过的项目
         const mergeed_items = video_items
@@ -199,7 +200,10 @@ const jobFunction = () => {
             `开始：第${v + 1}/${total_count}个`
           );
           const cur_video_id = mergeed_items[v][0];
-          const videoInfo = await findFitVideoAndAudioFormatId(cur_video_id,logger);
+          const videoInfo = await findFitVideoAndAudioFormatId(
+            cur_video_id,
+            logger
+          );
           //todo: 存放到列表里
           temp_videoInfo_arr.push(videoInfo);
 
@@ -222,7 +226,7 @@ const jobFunction = () => {
           "download_file",
           `开始下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
         );
-        const videoInfo = await downloadVideoAudio(cur_videoInfo,logger);
+        const videoInfo = await downloadVideoAudio(cur_videoInfo, logger);
         logger.write(
           "download_file",
           `完成下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
