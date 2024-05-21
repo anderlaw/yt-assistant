@@ -213,8 +213,6 @@ const jobFunction = () => {
         const videoInfo = await downloadVideoAudio(temp_videoInfo_arr[video_queue_id]);
         writeLog(`准备写入数据库表:${videoInfo.id},${videoInfo.title}`)
         //todo:通知用户 新的视频下载完毕，可以观看了。
-        videoInfo.title = videoInfo.title.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
-        videoInfo.description = videoInfo.description.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
         request(
           {
             method: "post",
