@@ -26,7 +26,7 @@ const findFitVideoAndAudioFormatId = (videoId, logger) => {
         // timeout:
       });
     } catch (e) {
-      logger.write("download_videoInfo", `失败，即将重试！`);
+      logger.write("download_videoInfo", `失败，${e}即将重试！`);
     } finally {
       if (stdout) {
         const videoData = JSON.parse(stdout);
