@@ -3,10 +3,7 @@ const bodyParser = require('body-parser')
 const app = express();
 const port = 3000;
 
-const myLogger = function (req, res, next) {
-  console.log("LOGGED");
-  next();
-};
+
 app.use(bodyParser.json())
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
