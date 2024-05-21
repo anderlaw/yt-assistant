@@ -5,7 +5,11 @@ const cron = require("cron");
 const fs = require("fs");
 const getChannelVideos = require("./services/get-channel-videos");
 const writeLog = (message) => {
-  const dateStr = `${new Date().toUTCString()}\n`;
+  const date = new Date();
+  const handledDate = `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`;
+  const handledTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+
+  const dateStr = `${handledDate} ${handledTime}\n`;
   fs.appendFileSync("./logs.txt", dateStr + message + "\n");
   console.log(dateStr + message + "\n");
 };
@@ -149,6 +153,7 @@ const jobFunction = () => {
         const videosOptStr = await getChannelVideos(
           `https://www.youtube.com/channel/${channel_id}/videos`
         );
+        
         writeLog(`<--- 频道 ${channel_id} 视频列表成功获取`);
 
         const video_items = videosOptStr
