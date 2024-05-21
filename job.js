@@ -9,6 +9,13 @@ const writeLog = (message) => {
   fs.appendFileSync("./logs.txt", dateStr + message + "\n");
   console.log(dateStr + message + "\n");
 };
+class LogService {
+  constructor(){
+    const date = new Date();
+    this.log_filename = `date.toDateString()`;
+    this
+  }
+}
 const sep_mark = ":##:";
 const request = require("request");
 
@@ -113,7 +120,9 @@ const downloadFromCachedData = async () => {
     video_queue_id < temp_videoInfo_arr.length;
     video_queue_id++
   ) {
-    await downloadVideoAudio(temp_videoInfo_arr[video_queue_id]);
+    const videoInfo = await downloadVideoAudio(
+      temp_videoInfo_arr[video_queue_id]
+    );
   }
 };
 
@@ -202,26 +211,53 @@ const jobFunction = () => {
         video_queue_id < temp_videoInfo_arr.length;
         video_queue_id++
       ) {
-        await downloadVideoAudio(temp_videoInfo_arr[video_queue_id]);
+        const videoInfo = await downloadVideoAudio(temp_videoInfo_arr[video_queue_id]);
+        writeLog(`准备写入数据库表:${videoInfo.id},${videoInfo.title}`)
         //todo:通知用户 新的视频下载完毕，可以观看了。
+        request(
+          {
+            method: "post",
+            url: "http://localhost:3000/api/write-video-db",
+            qs: {
+              id: videoInfo.id,
+              release_date: videoInfo.release_date,
+              channel_id: videoInfo.channel_id,
+              title: videoInfo.title,
+              description: videoInfo.description,
+              duration: videoInfo.duration,
+              duration_string: videoInfo.duration_string,
+              view_count: videoInfo.view_count,
+              out_video_filename:videoInfo.output.video_filename,
+              out_audio_filename:videoInfo.output.audio_filename
+            },
+          },
+          function (error, response, body) {
+            if (
+              response.statusCode === 200 &&
+              JSON.parse(body) &&
+              JSON.parse(body).status == true
+            ) {
+              writeLog(`成功写入数据库表:${videoInfo.id},${videoInfo.title}`)
+            }
+          }
+        );
         //写入到数据库另一张表里，用户可以直接读取展示。
       }
       writeLog("Job执行完毕！\n");
     }
   );
 };
-const cron_str = "00 35 06 * * *"; //每天下午五点
+const cron_str = "00 00 */6 * * *"; //每隔6个小时
 
 
-jobFunction();
-return;
 const job = new CronJob(
   cron_str, // cronTime
   jobFunction, // onTick
   () => {
     writeLog("on complete Job执行完毕！\n");
   }, // onComplete
-  false, // start
+  true, // start
   "UTC+8" // timeZone
 );
-job.start();
+jobFunction();//立即执行一次。
+

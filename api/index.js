@@ -6,6 +6,7 @@ const getUser = require("../services/get-user");
 const queryChannel = require("../services/query-channel");
 const searchChannel = require("../services/search-channel");
 const addChannel = require("../services/add-channel");
+const addVideo2db = require("../services/add-video-db");
 
 const getAllChannels = require("../services/get-all-channels");
 
@@ -32,12 +33,6 @@ router.get("/get-user", (req, res) => {
       res.json(data);
     }
   );
-});
-// 获取用户订阅的所有频道
-router.get("/get-subscribed-channels", (req, res) => {
-  getAllChannels((channelIds) => {
-    res.send(channelIds);
-  });
 });
 // 搜索频道：根据关键字或者链接搜索频道
 router.get("/query-channel", (req, res) => {
@@ -99,5 +94,21 @@ router.post("/add-channel", (req, res) => {
   // };
 
   //写入。channel-watch
+});
+
+// 供本地任务使用
+// 获取用户订阅的所有频道
+router.get("/get-subscribed-channels", (req, res) => {
+  getAllChannels((channelIds) => {
+    res.send(channelIds);
+  });
+});
+// 将新视频添加到本地数据库
+router.post("/write-video-db", (req, res) => {
+  console.log('服务端接收到数据',req.query);
+  addVideo2db(req.query,(result)=>{
+    res.send(result);
+  });
+
 });
 module.exports = router;
