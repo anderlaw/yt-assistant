@@ -79,7 +79,7 @@ const downloadVideoAudio = (videoInfo, logger) => {
           logger.write("std_error", stderr);
         }
         if (error) {
-          logger.write("download_file", `失败${stderr},即将重试！`);
+          logger.write("download_file", `失败${error},即将重试！`);
           return downloadVideoAudio(videoInfo,logger);
         } else if (
           stdout &&
