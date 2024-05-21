@@ -8,6 +8,8 @@ const genSQLValue = (content) => {
  */
 module.exports = (params, cb) => {
   console.log("服务service里接收到数据--->",params);
+  params.title = params.title.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
+  params.description = params.description.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
   connection.query(
     "INSERT IGNORE INTO `video` (\
       `id`,`channel_id`,`title`,`description`,`duration`,`duration_string`,\

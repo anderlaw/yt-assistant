@@ -19,8 +19,9 @@ module.exports = (params, cb) => {
         if (!channel_exist) {
           const { email, ...channelInfo } = params;
           //将描述文本序列化，处理里面的\n为\\n防止后面序列化时出错。
-          channelInfo.description = channelInfo.description.replaceAll("\n","#new-line#");
-          channelInfo.tags = channelInfo.tags.map(item =>replaceAll("\"","“"));
+          channelInfo.tags = channelInfo.tags.map(item =>item.replaceAll("\"","“")).map(item =>item.replaceAll("\"","“")).map(item =>item.replaceAll("\'","‘"));
+          channelInfo.description = channelInfo.description.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
+          
           data.push(channelInfo);
           console.log("新数据---", data);
           console.log(
