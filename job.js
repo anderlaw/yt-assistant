@@ -134,7 +134,6 @@ const jobFunction = () => {
     async (error, response, body) => {
       writeLog("获取所有频道");
       writeLog(body);
-      writeLog(body);
       const channel_ids = JSON.parse(body);
       //tobe:存放视频信息的数组
       const temp_videoInfo_arr = [];
@@ -214,6 +213,8 @@ const jobFunction = () => {
         const videoInfo = await downloadVideoAudio(temp_videoInfo_arr[video_queue_id]);
         writeLog(`准备写入数据库表:${videoInfo.id},${videoInfo.title}`)
         //todo:通知用户 新的视频下载完毕，可以观看了。
+        videoInfo.title = videoInfo.title.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
+        videoInfo.description = videoInfo.description.replaceAll("\n","#new-line#").replaceAll("\"","“").replaceAll("\'","‘");
         request(
           {
             method: "post",
