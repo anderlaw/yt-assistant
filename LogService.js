@@ -1,5 +1,5 @@
 const fs = require("fs");
-export class LogService {
+module.exports = class LogService {
   constructor() {
     const date = new Date();
     const date_string = `${date.getFullYear()}-${
@@ -38,6 +38,9 @@ export class LogService {
       case "insert_db":
         message_body += `插入数据库 [${message}]`;
         break;
+      case "download_videoInfo":
+        message_body += `下载获取视频地址和其他信息 [${message}]`;
+        break;
       case "download_file":
         message_body += `下载文件 [${message}]`;
         break;
@@ -47,12 +50,14 @@ export class LogService {
       case "download_streamlist":
         message_body += `下载频道的直播回放列表 [${message}]`;
         break;
-      case "stderror":
+      case "std_error":
         message_body += `标准输出错误或警告 [${message}]`;
         break;
-      case "runerror":
+      case "run_error":
         message_body += `程序运行错误错误或警告 [${message}]`;
         break;
+      default:
+        message_body += `info [${type}]`;
     }
     fs.appendFileSync(this.log_file_path, message_body);
   }

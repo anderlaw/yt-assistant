@@ -4,22 +4,8 @@ const CronJob = require("cron").CronJob;
 const cron = require("cron");
 const fs = require("fs");
 const getChannelVideos = require("./services/get-channel-videos");
-const writeLog = (message) => {
-  const date = new Date();
-  const handledDate = `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`;
-  const handledTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+const LogService = require("./LogService");
 
-  const dateStr = `${handledDate} ${handledTime}\n`;
-  fs.appendFileSync("./logs.txt", dateStr + message + "\n");
-  console.log(dateStr + message + "\n");
-};
-class LogService {
-  constructor(){
-    const date = new Date();
-    this.log_filename = `date.toDateString()`;
-    this
-  }
-}
 const sep_mark = ":##:";
 const request = require("request");
 
@@ -27,13 +13,8 @@ const request = require("request");
 const everySecond = "* * * * * *";
 const everyMinute = "* * * * *";
 const everyHour = "0 */1 * * *";
-// const downloadFileByURL = (uri, filename, callback) => {
-//   var stream = fs.createWriteStream(filename);
-//   request(uri).pipe(stream).on("close", callback);
-// };
-const waiting_video_ids = [];
-const failed_video_ids = [];
-const findFitVideoAndAudioFormatId = (videoId) => {
+
+const findFitVideoAndAudioFormatId = (videoId, logger) => {
   const link = `https://www.youtube.com/watch?v=${videoId}`;
   const execString = `yt-dlp -j -s --no-cache-dir ${link}`;
 
@@ -45,7 +26,7 @@ const findFitVideoAndAudioFormatId = (videoId) => {
         // timeout:
       });
     } catch (e) {
-      writeLog("失败一次");
+      logger.write("download_videoInfo", `失败，即将重试！`);
     } finally {
       if (stdout) {
         const videoData = JSON.parse(stdout);
@@ -56,7 +37,7 @@ const findFitVideoAndAudioFormatId = (videoId) => {
         const audio_format = formats
           .filter((item) => item.vcodec == "none" && item.acodec != "none")
           .sort((a, b) => b.quality - a.quality)[0];
-        writeLog("提取到数据！");
+        logger.write("download_videoInfo", `成功`);
         const videoInfo = {
           id: videoData.id,
           release_date: videoData.release_date,
@@ -71,14 +52,13 @@ const findFitVideoAndAudioFormatId = (videoId) => {
         };
         resolve(videoInfo);
       } else {
-        return findFitVideoAndAudioFormatId(videoId);
+        return findFitVideoAndAudioFormatId(videoId,logger);
       }
     }
   });
 };
 // const
-const downloadVideoAudio = (videoInfo) => {
-  writeLog(`--------->开始下载文件：${videoInfo.title}`);
+const downloadVideoAudio = (videoInfo, logger) => {
   const video_filename = `file.${videoInfo.video_format.ext}`;
   const audio_filename = `file.${videoInfo.audio_format.ext}`;
 
@@ -96,76 +76,106 @@ const downloadVideoAudio = (videoInfo) => {
       },
       (error, stdout, stderr) => {
         if (stderr) {
-          writeLog(`stderr: ${stderr}`);
+          logger.write("std_error", stderr);
         }
         if (error) {
-          writeLog(
-            `<---------文件下载失败${videoInfo.id}:\n${error}，即将重试！`
-          );
-          return downloadVideoAudio(videoInfo);
+          logger.write("download_file", `失败${stderr},即将重试！`);
+          return downloadVideoAudio(videoInfo,logger);
         } else if (
           stdout &&
           fs.existsSync("./channels/" + videoInfo.id) &&
           fs.readdirSync("./channels/" + videoInfo.id).length === 2
         ) {
-          writeLog(`<---------文件下载成功${videoInfo.title}`);
           resolve(videoInfo);
         }
       }
     );
   });
 };
-const downloadFromCachedData = async () => {
-  const temp_videoInfo_arr = JSON.parse(
-    fs.readFileSync("./data-queue.json").toString()
-  );
-  for (
-    let video_queue_id = 0;
-    video_queue_id < temp_videoInfo_arr.length;
-    video_queue_id++
-  ) {
-    const videoInfo = await downloadVideoAudio(
-      temp_videoInfo_arr[video_queue_id]
+const insertVideoByApi = async (videoInfo) => {
+  return new Promise((resolve, reject) => {
+    request(
+      {
+        method: "post",
+        url: "http://localhost:3000/api/write-video-db",
+        qs: {
+          id: videoInfo.id,
+          release_date: videoInfo.release_date,
+          channel_id: videoInfo.channel_id,
+          title: videoInfo.title,
+          description: videoInfo.description,
+          duration: videoInfo.duration,
+          duration_string: videoInfo.duration_string,
+          view_count: videoInfo.view_count,
+          out_video_filename: videoInfo.output.video_filename,
+          out_audio_filename: videoInfo.output.audio_filename,
+        },
+      },
+      function (error, response, body) {
+        if(error) return reject(error);
+        if (
+          response.statusCode === 200 &&
+          JSON.parse(body) &&
+          JSON.parse(body).status == true
+        ) {
+          resolve();
+        }
+      }
     );
-  }
+  });
 };
 
 const jobFunction = () => {
-  writeLog("Job开始执行\n");
+  const logger = new LogService();
+  logger.write("Job开始执行");
+  logger.write("query_db", `获取所有用户频道`);
   //api request
   request(
     "http://localhost:3000/api/get-subscribed-channels",
     async (error, response, body) => {
-      writeLog("获取所有频道");
-      writeLog(body);
-      const channel_ids = JSON.parse(body);
+      let channel_ids = [];
+      let has_error_query_channel = false;
+      try {
+        channel_ids = JSON.parse(body);
+      } catch (e) {
+        has_error_query_channel = true;
+        logger.write("run_error", `获取所有用户频道`);
+      }
+      if (has_error_query_channel) {
+        return;
+      }
+      logger.write(`频道列表：${channel_ids.join()}`);
+
       //tobe:存放视频信息的数组
       const temp_videoInfo_arr = [];
-      //已经下载的文件，用于后续的比对。
+      //下载文件目录
+      if (!fs.existsSync("./channels")) {
+        fs.mkdirSync("./channels");
+      }
       const alreadyDownloadFiles = fs.readdirSync("./channels");
 
-      writeLog(`-> 频道列表 ${channel_ids.join()}`);
       //查询并提取频道的视频和直播存储到 temp_videoInfo_arr 数组里
       for (let i = 0; i < channel_ids.length; i++) {
         const channel_id = channel_ids[i];
         // 查询视频
-        writeLog(`---> 获取频道 ${channel_id} 视频列表`);
+        logger.write("download_videolist", `开始：${channel_id}`);
         const videosOptStr = await getChannelVideos(
           `https://www.youtube.com/channel/${channel_id}/videos`
         );
-        
-        writeLog(`<--- 频道 ${channel_id} 视频列表成功获取`);
+        logger.write("download_videolist", `完成：${channel_id}`);
 
         const video_items = videosOptStr
           .split("\n")
           .filter((str) => str.trim())
           .map((item) => item.split(sep_mark));
-        writeLog(`---> 获取频道 ${channel_id} 直播回放列表`);
+
         //查询直播回放视频
+
+        logger.write("download_streamlist", `开始：${channel_id}`);
         const streamsOptStr = await getChannelVideos(
           `https://www.youtube.com/channel/${channel_id}/streams`
         );
-        writeLog(`<--- 频道 ${channel_id} 直播回放列表成功获取`);
+        logger.write("download_streamlist", `完成：${channel_id}`);
 
         let stream_items = streamsOptStr
           .split("\n")
@@ -173,95 +183,90 @@ const jobFunction = () => {
           .map((item) => item.split(sep_mark));
         //过滤掉正在直播的视频:duration字段表示为NA未知
         stream_items = stream_items.filter((item) => item[2] !== "NA");
+
+        //合并视频和直播并去掉已经下载过的项目
+        const mergeed_items = video_items
+          .concat(stream_items)
+          .filter((item) => alreadyDownloadFiles.indexOf(item[0]) == -1);
+
         let i_v = 0;
         let i_s = 0;
-        const total_count = video_items.length + stream_items.length;
-        for (; i_v < video_items.length; i_v++) {
-          const cur_video_id = video_items[i_v][0];
-          if (alreadyDownloadFiles.indexOf(cur_video_id) == -1) {
-            writeLog(`------> 提取视频文件信息 ${cur_video_id}`);
-            const videoInfo = await findFitVideoAndAudioFormatId(cur_video_id);
-            //todo: 存放到列表里
-            temp_videoInfo_arr.push(videoInfo);
-            writeLog(`<------ 成功提取视频文件 ${cur_video_id}`);
-          } else {
-            writeLog(`------!> 跳过提取直播回放文件 ${cur_video_id}`);
-          }
-          writeLog(`进度：${i_v + 1}/${total_count}`);
-        }
+        const total_count = mergeed_items.length;
+        logger.write("download_videoInfo", `共${total_count}个新项目`);
+        for (let v = 0; v < mergeed_items.length; v++) {
+          logger.write(
+            "download_videoInfo",
+            `开始：第${v + 1}/${total_count}个`
+          );
+          const cur_video_id = mergeed_items[v][0];
+          const videoInfo = await findFitVideoAndAudioFormatId(cur_video_id,logger);
+          //todo: 存放到列表里
+          temp_videoInfo_arr.push(videoInfo);
 
-        for (; i_s < stream_items.length; i_s++) {
-          // const cur_videoItem = video_items[i_v];
-          const cur_stream_id = stream_items[i_s][0];
-
-          if (alreadyDownloadFiles.indexOf(cur_stream_id) == -1) {
-            writeLog(`------> 提取直播回放文件 ${cur_stream_id}`);
-            const videoInfo = await findFitVideoAndAudioFormatId(cur_stream_id);
-            //todo: 存放到列表里
-            temp_videoInfo_arr.push(videoInfo);
-            writeLog(`<------ 成功提取直播回放文件 ${cur_stream_id}`);
-          } else {
-            writeLog(`------!> 跳过提取直播回放文件 ${cur_stream_id}`);
-          }
-          writeLog(`进度：${video_items.length + i_s + 1}/${total_count}`);
+          logger.write(
+            "download_videoInfo",
+            `下载成功：${v + 1}/${total_count}个 ${videoInfo.title}`
+          );
         }
       }
-      writeLog("视频数据准备完毕，准备下载 ！！！！！！");
-      // 遍历 temp_videoInfo_arr 并下载视频和音频
 
-      fs.writeFileSync(`./data-queue.json`, JSON.stringify(temp_videoInfo_arr));
+      logger.write("download_file", "准备下载音视频");
+      // 遍历 temp_videoInfo_arr 并下载视频和音频
       for (
         let video_queue_id = 0;
         video_queue_id < temp_videoInfo_arr.length;
         video_queue_id++
       ) {
-        const videoInfo = await downloadVideoAudio(temp_videoInfo_arr[video_queue_id]);
-        writeLog(`准备写入数据库表:${videoInfo.id},${videoInfo.title}`)
-        //todo:通知用户 新的视频下载完毕，可以观看了。
-        request(
-          {
-            method: "post",
-            url: "http://localhost:3000/api/write-video-db",
-            qs: {
-              id: videoInfo.id,
-              release_date: videoInfo.release_date,
-              channel_id: videoInfo.channel_id,
-              title: videoInfo.title,
-              description: videoInfo.description,
-              duration: videoInfo.duration,
-              duration_string: videoInfo.duration_string,
-              view_count: videoInfo.view_count,
-              out_video_filename:videoInfo.output.video_filename,
-              out_audio_filename:videoInfo.output.audio_filename
-            },
-          },
-          function (error, response, body) {
-            if (
-              response.statusCode === 200 &&
-              JSON.parse(body) &&
-              JSON.parse(body).status == true
-            ) {
-              writeLog(`成功写入数据库表:${videoInfo.id},${videoInfo.title}`)
-            }
-          }
+        const cur_videoInfo = temp_videoInfo_arr[video_queue_id];
+        logger.write(
+          "download_file",
+          `开始下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
         );
+        const videoInfo = await downloadVideoAudio(cur_videoInfo,logger);
+        logger.write(
+          "download_file",
+          `完成下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
+        );
+
+        logger.write(
+          "insert_db",
+          `准备写入数据库表:${videoInfo.id},${videoInfo.title}`
+        );
+
         //写入到数据库另一张表里，用户可以直接读取展示。
+        let has_error_insertdb = false;
+        try {
+          await insertVideoByApi(videoInfo);
+        } catch (err) {
+          has_error_insertdb = true;
+          logger.write(
+            `run_error`,
+            `写入数据库表错误:${videoInfo.id} ${videoInfo.title},${err}`
+          );
+        }
+        if (has_error_insertdb) {
+          return;
+        }
+        logger.write(
+          "insert_db",
+          `成功写入数据库表:${videoInfo.id},${videoInfo.title}`
+        );
+
+        //todo:通知用户 新的视频下载完毕，可以观看了。
       }
-      writeLog("Job执行完毕！\n");
+      logger.write("Job执行完毕！\n");
     }
   );
 };
 const cron_str = "00 00 */6 * * *"; //每隔6个小时
 
-
 const job = new CronJob(
   cron_str, // cronTime
   jobFunction, // onTick
   () => {
-    writeLog("on complete Job执行完毕！\n");
+    logger.write("on complete Job执行完毕！\n");
   }, // onComplete
   true, // start
   "UTC+8" // timeZone
 );
-jobFunction();//立即执行一次。
-
+jobFunction(); //立即执行一次。
