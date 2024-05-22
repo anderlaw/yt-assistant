@@ -5,14 +5,22 @@ const connection = require("../db/conn.js");
  */
 module.exports = (cb) => {
   connection.query("SELECT * FROM `user`", function (error, results, fields) {
-    if (error) throw error;
-    console.log(results);
+    if (error) {
+      console.log(error);
+      cb({
+        error: error,
+      });
+    }
     if (results) {
-
-      const channel_ids = results.reduce((_pre,item) => {
-        return _pre.concat((item.channels||[]).map(innerItem => innerItem.channel_id));
-      },[]);
-      cb(channel_ids);
+      const channel_ids = results.reduce((_pre, item) => {
+        return _pre.concat(
+          (item.channels || []).map((innerItem) => innerItem.channel_id)
+        );
+      }, []);
+      cb({
+        error: null,
+        data: channel_ids,
+      });
     }
   });
 };

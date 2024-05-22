@@ -103,10 +103,10 @@ router.get("/get-channel-videos", (req, res) => {
   connect.query(
     "select * from video where channel_id = '" + channel_id + "'",
     function (error, results, fields) {
-      if (error){
+      if (error) {
         res.status(400).send("bad request");
-      };
-      if (results){
+      }
+      if (results) {
         res.json(results);
       }
     }
@@ -116,8 +116,13 @@ router.get("/get-channel-videos", (req, res) => {
 // 供本地任务使用
 // 获取用户订阅的所有频道
 router.get("/get-subscribed-channels", (req, res) => {
-  getAllChannels((channelIds) => {
-    res.send(channelIds);
+  throw new Error("123");
+  getAllChannels((payload) => {
+    if (!payload.error) {
+      res.status(200).send(payload.data);
+    } else {
+      res.status(500).send(payload.error);
+    }
   });
 });
 // 将新视频添加到本地数据库
