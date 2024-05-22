@@ -197,6 +197,7 @@ const jobFunction = () => {
   request(
     "http://localhost:3000/api/get-subscribed-channels",
     async (error, response, body) => {
+      console.log(error);
       console.log(response,body);
       let channel_ids = [];
       let has_error_query_channel = false;
