@@ -12,7 +12,9 @@ export default ({authState})=>{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding:'0 20px'
+        padding:'0 20px',
+        zIndex:10,
+        backgroundColor:'#FFFFFF',
     }}>
       <a href="#">Logo</a>
       <Avatar>{authState && authState.email[0]}</Avatar>

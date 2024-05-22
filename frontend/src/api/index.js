@@ -22,3 +22,9 @@ export const queryChannel = ({ keyword, channelLink }) => {
     `${baseURL}/query-channel?keyword=${keyword}&channel-link=${channelLink}`
   );
 };
+
+export const getDbChannelVideos = (channel_id) => {
+  return axios.get(
+    `${baseURL}/get-channel-videos?channel_id=${channel_id}`
+  );
+}

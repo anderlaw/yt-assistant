@@ -9,7 +9,7 @@ const addChannel = require("../services/add-channel");
 const addVideo2db = require("../services/add-video-db");
 
 const getAllChannels = require("../services/get-all-channels");
-
+const connect = require("../db/conn");
 //用户注册
 router.post("/add-user", (req, res) => {
   addUser(
@@ -96,6 +96,23 @@ router.post("/add-channel", (req, res) => {
   //写入。channel-watch
 });
 
+//获取db里某个频道的视频记录
+router.get("/get-channel-videos", (req, res) => {
+  const channel_id = req.query.channel_id;
+
+  connect.query(
+    "select * from video where channel_id = '" + channel_id + "'",
+    function (error, results, fields) {
+      if (error){
+        res.status(400).send("bad request");
+      };
+      if (results){
+        res.json(results);
+      }
+    }
+  );
+});
+
 // 供本地任务使用
 // 获取用户订阅的所有频道
 router.get("/get-subscribed-channels", (req, res) => {
@@ -105,10 +122,9 @@ router.get("/get-subscribed-channels", (req, res) => {
 });
 // 将新视频添加到本地数据库
 router.post("/write-video-db", (req, res) => {
-  console.log('服务端接收到数据',req.query);
-  addVideo2db(req.query,(result)=>{
+  console.log("服务端接收到数据", req.query);
+  addVideo2db(req.query, (result) => {
     res.send(result);
   });
-
 });
 module.exports = router;

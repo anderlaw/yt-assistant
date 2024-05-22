@@ -7,10 +7,21 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 
+import Avatar from "@mui/material/Avatar";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Divider from "@mui/material/Divider";
+// import InboxIcon from '@mui/icons-material/Inbox';
+// import DraftsIcon from '@mui/icons-material/Drafts';
+
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
 import { queryChannel, addChannel, getUserInfo } from "../api/index";
-export default () => {
+
+export default ({ onMenuItemClick }) => {
   const [subChannels, setSubChannels] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [queryLoading, setQueryLoading] = useState(false);
@@ -41,11 +52,25 @@ export default () => {
       <button onClick={() => setDialogOpen(true)}>增加频道</button>
       <hr />
       <p>已添加频道</p>
-      <ul>
+      <ul>{}</ul>
+      <List>
         {subChannels.map((item, index) => {
-          return <li key={index}>{item.title}</li>;
+          return (
+            <ListItem key={index} onClick={() => onMenuItemClick(item)} disablePadding>
+              <ListItemButton>
+                <Avatar
+                  style={{
+                    marginRight: "6px",
+                  }}
+                  alt={item.title}
+                  src={item.avatar_url}
+                />
+                <ListItemText primary={item.title} />
+              </ListItemButton>
+            </ListItem>
+          );
         })}
-      </ul>
+      </List>
 
       <Dialog onClose={(val) => setDialogOpen(val)} open={dialogOpen}>
         <DialogTitle>添加频道</DialogTitle>
