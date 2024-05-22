@@ -56,6 +56,9 @@ module.exports = class LogService {
       case "run_error":
         message_body += `程序运行错误错误或警告 [${message}]`;
         break;
+      case "retry":
+        message_body += `重试 [${message}]`;
+        break;
       default:
         message_body += `info [${type}]`;
     }
