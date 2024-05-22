@@ -116,7 +116,6 @@ router.get("/get-channel-videos", (req, res) => {
 // 供本地任务使用
 // 获取用户订阅的所有频道
 router.get("/get-subscribed-channels", (req, res) => {
-  throw new Error("123");
   getAllChannels((payload) => {
     if (!payload.error) {
       res.status(200).send(payload.data);
