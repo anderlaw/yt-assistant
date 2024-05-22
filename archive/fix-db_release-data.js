@@ -1,5 +1,5 @@
 //读取所有记录修改
-const connection = require("./db/conn");
+const connection = require("../db/conn");
 const exec = require("child_process").execSync;
 connection.query(
   "SELECT * FROM `video`",
