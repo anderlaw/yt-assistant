@@ -62,6 +62,8 @@ module.exports = class LogService {
       default:
         message_body += `info [${type}]`;
     }
+    //增加打印信息到控制台，方便调试最新信息
+    console.log(message_body);
     fs.appendFileSync(this.log_file_path, message_body);
   }
 }
