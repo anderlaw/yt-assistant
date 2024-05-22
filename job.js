@@ -100,6 +100,13 @@ const downloadVideoAudio = (videoInfo, logger) => {
           fs.readdirSync("./channels/" + videoInfo.id).length === 2
         ) {
           resolve(videoInfo);
+        }else{
+          //文件下载不全。全部删除重新下载
+          logger.write(
+            "download_file",
+            `视频或音频文件缺失，${videoInfo.title} ${videoInfo.id},稍后重试！`
+          );
+          reject();
         }
       }
     );
@@ -198,8 +205,6 @@ const jobFunction = () => {
   request(
     "http://localhost:3000/api/get-subscribed-channels",
     async (error, response, body) => {
-      console.log(error);
-      console.log(response,body);
       let channel_ids = [];
       let has_error_query_channel = false;
       try {
