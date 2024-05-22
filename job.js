@@ -43,7 +43,8 @@ const findFitVideoAndAudioFormatId = (videoId, logger) => {
         logger.write("download_videoInfo", `成功`);
         const videoInfo = {
           id: videoData.id,
-          release_date: videoData.release_date,
+          //fix:有些视频可能release_date为空，将上传日期视为发布日期
+          release_date: videoData.release_date || videoData.upload_date,
           channel_id: videoData.channel_id,
           title: videoData.title,
           description: videoData.description,
