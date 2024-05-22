@@ -1,4 +1,5 @@
 const exec = require("child_process").execSync;
+const { rimrafSync, native, nativeSync } = require('rimraf');
 const execAsync = require("child_process").exec;
 const CronJob = require("cron").CronJob;
 const cron = require("cron");
@@ -28,6 +29,8 @@ const findFitVideoAndAudioFormatId = (videoId, logger) => {
     } catch (e) {
       logger.write("download_videoInfo", `失败，${e}即将重试！`);
     } finally {
+      //try-fix:解决进程卡住的问题，杀死完成的进程
+
       if (stdout) {
         const videoData = JSON.parse(stdout);
         const formats = videoData.formats;
@@ -73,14 +76,23 @@ const downloadVideoAudio = (videoInfo, logger) => {
       `yt-dlp https://www.youtube.com/watch?v=${videoInfo.id} -f ${videoInfo.video_format.format_id},${videoInfo.audio_format.format_id} -o ${output_format_templ}`,
       {
         maxBuffer: 1024 * 1024 * 1024,
+        //try-fix: 下载卡死的问题，设置超时为30分钟
+        timeout: 30 * 60 * 1000,
       },
       (error, stdout, stderr) => {
         if (stderr) {
-          logger.write("std_error", stderr);
+          logger.write(
+            "std_error",
+            `${videoInfo.title} ${videoInfo.id} ${stderr}`
+          );
         }
         if (error) {
-          logger.write("download_file", `失败${error},即将重试！`);
-          return downloadVideoAudio(videoInfo, logger);
+          logger.write(
+            "download_file",
+            `运行失败，${error},记录后稍后再重试！`
+          );
+          //try-fix: 先reject而不是立刻重试，可能这个视频暂时被youtube限制，稍后再看看情况？
+          reject(error);
         } else if (
           stdout &&
           fs.existsSync("./channels/" + videoInfo.id) &&
@@ -124,7 +136,59 @@ const insertVideoByApi = async (videoInfo) => {
     );
   });
 };
+const redownloadVideoAndAudio = async (videoInfoList,logger) => {
+  logger.write("retry",`启动重试下载`);
+  let videoInfo = null;
+  for (
+    let i = 0;
+    i < videoInfoList.length;
+    i++
+  ) {
+    const cur_videoInfo = videoInfoList[i];
+    logger.write(
+      "download_file",
+      `开始下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
+    );
+    try {
+      const videoInfo = await downloadVideoAudio(cur_videoInfo, logger);
+      logger.write(
+        "download_file",
+        `完成下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
+      );
 
+      logger.write(
+        "insert_db",
+        `准备写入数据库表:${videoInfo.id},${videoInfo.title}`
+      );
+
+      //写入到数据库另一张表里，用户可以直接读取展示。
+      let has_error_insertdb = false;
+      try {
+        await insertVideoByApi(videoInfo);
+      } catch (err) {
+        has_error_insertdb = true;
+        logger.write(
+          `run_error`,
+          `写入数据库表错误:${videoInfo.id} ${videoInfo.title},${err}`
+        );
+      }
+      if (has_error_insertdb) {
+        return;
+      }
+      logger.write(
+        "insert_db",
+        `成功写入数据库表:${videoInfo.id},${videoInfo.title}`
+      );
+    } catch (e) {
+      //try-fix: 先记录下记录，稍后再重试即可
+      // download_video_failed_box.push(cur_videoInfo);
+      logger.write('run_error',`重试下载失败 ${cur_videoInfo.title} ${cur_videoInfo.id}`)
+      //删除下载产生的无效文件和文件夹
+      rimrafSync(`./channels/${cur_videoInfo.id}`);
+    }
+    //todo:通知用户 新的视频下载完毕，可以观看了。
+  }
+}
 const jobFunction = () => {
   const logger = new LogService();
   logger.write("Job开始执行");
@@ -139,7 +203,7 @@ const jobFunction = () => {
         channel_ids = JSON.parse(body);
       } catch (e) {
         has_error_query_channel = true;
-        logger.write("run_error", `获取所有用户频道`);
+        logger.write("run_error", `获取所有用户频道 ${e}`);
       }
       if (has_error_query_channel) {
         return;
@@ -215,6 +279,8 @@ const jobFunction = () => {
       }
 
       logger.write("download_file", "准备下载音视频");
+
+      const download_video_failed_box = [];
       // 遍历 temp_videoInfo_arr 并下载视频和音频
       for (
         let video_queue_id = 0;
@@ -226,38 +292,45 @@ const jobFunction = () => {
           "download_file",
           `开始下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
         );
-        const videoInfo = await downloadVideoAudio(cur_videoInfo, logger);
-        logger.write(
-          "download_file",
-          `完成下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
-        );
-
-        logger.write(
-          "insert_db",
-          `准备写入数据库表:${videoInfo.id},${videoInfo.title}`
-        );
-
-        //写入到数据库另一张表里，用户可以直接读取展示。
-        let has_error_insertdb = false;
         try {
-          await insertVideoByApi(videoInfo);
-        } catch (err) {
-          has_error_insertdb = true;
+          const videoInfo = await downloadVideoAudio(cur_videoInfo, logger);
           logger.write(
-            `run_error`,
-            `写入数据库表错误:${videoInfo.id} ${videoInfo.title},${err}`
+            "download_file",
+            `完成下载:${cur_videoInfo.id} ${cur_videoInfo.title}`
           );
-        }
-        if (has_error_insertdb) {
-          return;
-        }
-        logger.write(
-          "insert_db",
-          `成功写入数据库表:${videoInfo.id},${videoInfo.title}`
-        );
 
+          logger.write(
+            "insert_db",
+            `准备写入数据库表:${videoInfo.id},${videoInfo.title}`
+          );
+
+          //写入到数据库另一张表里，用户可以直接读取展示。
+          let has_error_insertdb = false;
+          try {
+            await insertVideoByApi(videoInfo);
+          } catch (err) {
+            has_error_insertdb = true;
+            logger.write(
+              `run_error`,
+              `写入数据库表错误:${videoInfo.id} ${videoInfo.title},${err}`
+            );
+          }
+          if (has_error_insertdb) {
+            return;
+          }
+          logger.write(
+            "insert_db",
+            `成功写入数据库表:${videoInfo.id},${videoInfo.title}`
+          );
+        } catch (e) {
+          //try-fix: 先记录下记录，稍后再重试即可
+          download_video_failed_box.push(cur_videoInfo);
+          //删除下载产生的无效文件和文件夹
+          rimrafSync(`./channels/${cur_videoInfo.id}`);
+        }
         //todo:通知用户 新的视频下载完毕，可以观看了。
       }
+      await redownloadVideoAndAudio(download_video_failed_box,logger);
       logger.write("Job执行完毕！\n");
     }
   );
