@@ -117,6 +117,7 @@ router.get("/get-channel-videos", (req, res) => {
 // 获取用户订阅的所有频道
 router.get("/get-subscribed-channels", (req, res) => {
   getAllChannels((payload) => {
+    console.log(payload);
     if (!payload.error) {
       res.status(200).send(payload.data);
     } else {
