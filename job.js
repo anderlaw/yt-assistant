@@ -203,7 +203,7 @@ const jobFunction = () => {
   logger.write("query_db", `获取所有用户频道`);
   //api request
   request(
-    "http://localhost:3000/api/get-subscribed-channels",
+    "http://localhost/api/get-subscribed-channels",
     async (error, response, body) => {
       let channel_ids = [];
       let has_error_query_channel = false;
