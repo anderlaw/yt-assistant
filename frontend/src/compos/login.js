@@ -1,34 +1,62 @@
 import { useEffect, useState } from "react";
-export default ({ onLogin }) => {
+
+import * as React from "react";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogTitle from "@mui/material/DialogTitle";
+
+export default function FormDialog({ onLogin, open, handleClose }) {
   const [email, setEmail] = useState("");
+
   return (
-    <div align="center">
-      <h3>Login</h3>
-      <form>
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{
-            padding: "0px 12px",
-            height: "30px",
-            boxSizing: "border-box",
-            fontSize: "16px",
-          }}
-          placeholder="请输入邮箱"
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      PaperProps={{
+        component: "form",
+        onSubmit: (event) => {
+          event.preventDefault();
+          const formData = new FormData(event.currentTarget);
+          const formJson = Object.fromEntries(formData.entries());
+          const email = formJson.email;
+          handleClose();
+          onLogin(email);
+        },
+      }}
+    >
+      <DialogTitle>登陆</DialogTitle>
+      <DialogContent
+        sx={{
+          minWidth: "300px",
+        }}
+      >
+        <DialogContentText>
+          {/* To subscribe to this website, please enter your email address here. We
+            will send updates occasionally. */}
+        </DialogContentText>
+        <TextField
+          // sx={{
+          //   minWidth:"400px"
+          // }}
+          autoFocus
+          required
+          margin="dense"
+          id="name"
           name="email"
-          type="text"
+          label="Email Address"
+          type="email"
+          fullWidth
+          variant="standard"
         />
-        <br />
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            onLogin(email);
-          }}
-          style={{ height: "30px" }}
-        >
-          确认
-        </button>
-      </form>
-    </div>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>取消</Button>
+        <Button type="submit">确认</Button>
+      </DialogActions>
+    </Dialog>
   );
-};
+}

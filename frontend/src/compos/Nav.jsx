@@ -5,22 +5,17 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 
 import Avatar from "@mui/material/Avatar";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Divider from "@mui/material/Divider";
-// import InboxIcon from '@mui/icons-material/Inbox';
-// import DraftsIcon from '@mui/icons-material/Drafts';
-
-import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
 import { queryChannel, addChannel, getUserInfo } from "../api/index";
-
+import { getAuth } from "../utils/auth";
+import IconButton from '@mui/material/IconButton';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 export default ({ onMenuItemClick }) => {
   const [subChannels, setSubChannels] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,34 +24,32 @@ export default ({ onMenuItemClick }) => {
   const [channelInfo, setChannelInfo] = useState(null);
 
   useEffect(() => {
-    const email = JSON.parse(localStorage.getItem("yt-assistant-auth")).email;
-    getUserInfo({
-      email,
-    }).then((res) => {
-      console.log(res);
-      if (res.status === 200 && res.data.length > 0) {
-        setSubChannels(res.data[0].channels || []);
-      }
-    });
+    const auth = getAuth();
+    auth &&
+      getUserInfo({
+        email: auth.email,
+      }).then((res) => {
+        console.log(res);
+        if (res.status === 200 && res.data.length > 0) {
+          setSubChannels(res.data[0].channels || []);
+        }
+      });
   }, []);
   return (
     <div
       style={{
-        position: "fixed",
-        left: 0,
-        top: "60px",
-        bottom: 0,
-        width: "200px",
+        maxWidth: "200px",
       }}
     >
-      <button onClick={() => setDialogOpen(true)}>增加频道</button>
-      <hr />
-      <p>已添加频道</p>
-      <ul>{}</ul>
+      {/*<button onClick={() => }>增加频道</button>*/}
       <List>
         {subChannels.map((item, index) => {
           return (
-            <ListItem key={index} onClick={() => onMenuItemClick(item)} disablePadding>
+            <ListItem
+              key={index}
+              onClick={() => onMenuItemClick(item)}
+              disablePadding
+            >
               <ListItemButton>
                 <Avatar
                   style={{
@@ -70,13 +63,20 @@ export default ({ onMenuItemClick }) => {
             </ListItem>
           );
         })}
+        <ListItem>
+          <IconButton onClick={()=>setDialogOpen(true)}>
+            <AddCircleIcon/>
+            <span style={{fontSize:'16px'}}>增加频道</span>
+          </IconButton>
+        </ListItem>
+
       </List>
 
       <Dialog onClose={(val) => setDialogOpen(val)} open={dialogOpen}>
         <DialogTitle>添加频道</DialogTitle>
         <DialogContent>
           {/* <DialogContentText id="alert-dialog-description">
-            
+
           </DialogContentText> */}
           <TextField
             sx={{
@@ -90,7 +90,7 @@ export default ({ onMenuItemClick }) => {
           {!queryLoading && channelInfo && (
             <div>
               {/* 频道名 */}
-              <img height="40px" src={channelInfo?.avatar_url} />
+              <img height="40px" alt="avatar" src={channelInfo?.avatar_url} />
               <p>{channelInfo?.title}</p>
               <p>{channelInfo?.description}</p>
               <p>{channelInfo?.tags.join("&nbsp;")}</p>
@@ -172,13 +172,6 @@ export default ({ onMenuItemClick }) => {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* <Backdrop
-        sx={{ color: "#fff",zIndex:1400}}
-        open={queryLoading}
-        // onClick={handleClose}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop> */}
     </div>
   );
 };
