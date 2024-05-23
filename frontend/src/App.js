@@ -28,7 +28,7 @@ function App() {
   useEffect(() => {
     const auth = getAuth();
     auth && setAuthState(auth);
-    setHeaderHeight(document.querySelector(".MuiToolbar-root").height);
+    setHeaderHeight(getComputedStyle(document.querySelector(".MuiToolbar-root")).height);
   }, []);
 
   return (
@@ -62,8 +62,7 @@ function App() {
         )}
         <Grid
           style={{
-            marginLeft: "200px",
-            marginTop: "60px",
+            // marginLeft: smallDeviceMatches ?"0":"200px",
             flexGrow: 1,
           }}
           container
