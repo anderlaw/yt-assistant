@@ -117,7 +117,7 @@ const insertVideoByApi = async (videoInfo) => {
     request(
       {
         method: "post",
-        url: "http://localhost:3000/api/write-video-db",
+        url: "http://localhost/api/write-video-db",
         qs: {
           id: videoInfo.id,
           release_date: videoInfo.release_date,
@@ -205,9 +205,6 @@ const jobFunction = () => {
   request(
     "http://localhost/api/get-subscribed-channels",
     async (error, response, body) => {
-      //临时测试
-      console.log('response',response);
-      console.log('error',error);
       let channel_ids = [];
       let has_error_query_channel = false;
       try {
