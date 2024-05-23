@@ -14,6 +14,10 @@ import { useSmallDevice } from "./utils/useQuery";
 import { loginSignup, getDbChannelVideos } from "./api/index";
 import { getAuth, setAuth } from "./utils/auth";
 import DrawerComp from "./compos/Drawer";
+import Plyr from 'plyr';
+
+import Backdrop from '@mui/material/Backdrop';
+import PlayVideoDialog from "./compos/PlayVideoDialog";
 
 function App() {
   const [authState, setAuthState] = useState(null);
@@ -24,12 +28,22 @@ function App() {
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
 
   const [drawerOpen,setDrawerOpen] = useState(false)
+    const [curVideoPlayInfo,setCurVideoPlayInfo] = useState(null)
+    const [playVideoOpen,setPlayVideoOpen] = useState(false)
 
   useEffect(() => {
     const auth = getAuth();
     auth && setAuthState(auth);
     setHeaderHeight(getComputedStyle(document.querySelector(".MuiToolbar-root")).height);
   }, []);
+  const playAudio = (videoInfo) => {
+      const audioPlayerContainer = document.querySelector('#audio-player-container');
+      audioPlayerContainer.style.display = 'block';
+      const audioEle = document.querySelector('#audio-player')
+      const player = new Plyr('#audio-player');
+      audioEle.src = `http://43.133.193.236/media/${videoInfo.id}/${videoInfo.out_audio_filename}`;
+      player.play();
+  }
 
   return (
     <div className="App">
@@ -62,15 +76,15 @@ function App() {
         )}
         <Grid
           style={{
-            // marginLeft: smallDeviceMatches ?"0":"200px",
             flexGrow: 1,
+            marginBottom:'60px'
           }}
           container
           spacing={2}
         >
           {videoList.map((videoItem) => {
             return (
-              <Grid key={videoItem.id} xs={4}>
+              <Grid key={videoItem.id} xs={6} md={4}>
                 <Card sx={{ maxWidth: 345 }}>
                   <CardMedia
                     component="img"
@@ -100,6 +114,9 @@ function App() {
                     >
                       {videoItem.description}
                     </Typography>
+                      <span>{videoItem.duration_string}</span>
+                      &nbsp;
+                      <span>{videoItem.view_count}次观看</span>
                     <Typography
                       style={{
                         marginTop: "6px",
@@ -113,10 +130,13 @@ function App() {
                     </Typography>
                   </CardContent>
                   <CardActions>
-                    <Button size="small" color="primary">
+                    <Button onClick={()=>playAudio(videoItem)} size="small" color="primary">
                       听音频
                     </Button>
-                    <Button size="small" color="primary">
+                    <Button onClick={()=>{
+                        setCurVideoPlayInfo(videoItem);
+                        setPlayVideoOpen(true);
+                    }} size="small" color="primary">
                       观看视频（无广告）
                     </Button>
                     <Button size="small" color="primary">
@@ -147,7 +167,7 @@ function App() {
           }}
         />
       )}
-        <DrawerComp open={drawerOpen} handleClose={()=>setDrawerOpen(false)}>
+    <DrawerComp open={drawerOpen} handleClose={()=>setDrawerOpen(false)}>
             <Nav
                 onMenuItemClick={(item) => {
                     console.log(item);
@@ -160,6 +180,7 @@ function App() {
                 }}
             />
         </DrawerComp>
+    <PlayVideoDialog videoInfo={curVideoPlayInfo} open={playVideoOpen} handleClose={()=>setPlayVideoOpen(false)}/>
     </div>
   );
 }
