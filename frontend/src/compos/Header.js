@@ -42,7 +42,7 @@ export default ({ authState, onLoginClick, onLogoutClick,onMenuClick }) => {
         )}
 
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Logo
+          YouTeller
         </Typography>
         {authState ? (
           <div>
