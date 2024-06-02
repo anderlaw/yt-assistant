@@ -343,7 +343,7 @@ const jobFunction = () => {
     }
   );
 };
-const cron_str = "00 00 */6 * * *"; //每隔6个小时
+const cron_str = "00 00 */3 * * *"; //每隔3个小时
 
 const job = new CronJob(
   cron_str, // cronTime
