@@ -34,3 +34,10 @@ export const getDbChannelVideos = (channel_id) => {
 export const writeViewedVideoId = (payload) => {
     return axios.post(`${baseURL}/write-viewed-video_id?viewed_video_ids=${payload.viewed_video_ids}&email=${payload.email}`)
 }
+
+
+export const downloadVideoByURL = (url) => {
+    return axios.get(
+        `${baseURL}/download?url=${url}`
+    );
+}

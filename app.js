@@ -17,7 +17,7 @@ const apiRouter = require("./api/index.js");
 app.use("/api", apiRouter);
 //前端页面通过static配置
 app.use(express.static("frontend/build"));
-app.use('/media', express.static("channels/"))
+app.use('/media', express.static("files/"))
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });

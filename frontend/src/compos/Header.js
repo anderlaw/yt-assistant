@@ -14,7 +14,7 @@ import Menu from "@mui/material/Menu";
 import { useEffect, useState } from "react";
 
 import { useSmallDevice } from "../utils/useQuery";
-export default ({ authState, onLoginClick, onLogoutClick,onMenuClick }) => {
+export default ({onMenuClick }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const smallDeviceMatches = useSmallDevice();
 
@@ -28,7 +28,7 @@ export default ({ authState, onLoginClick, onLogoutClick,onMenuClick }) => {
   return (
     <AppBar position="static">
       <Toolbar>
-        {smallDeviceMatches && (
+        {/* {smallDeviceMatches && (
           <IconButton
               onClick={()=>onMenuClick()}
             size="large"
@@ -39,47 +39,10 @@ export default ({ authState, onLoginClick, onLogoutClick,onMenuClick }) => {
           >
             <MenuIcon />
           </IconButton>
-        )}
-
+        )} */}
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          YouTeller
+          Youtube中转站
         </Typography>
-        {authState ? (
-          <div>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              {/* <MenuItem>{authState && authState.email}</MenuItem> */}
-              <MenuItem onClick={() => onLogoutClick()}>退出</MenuItem>
-            </Menu>
-          </div>
-        ) : (
-          <span onClick={() => onLoginClick()} style={{ cursor: "pointer" }}>
-            Login
-          </span>
-        )}
       </Toolbar>
     </AppBar>
   );
