@@ -8,6 +8,7 @@ router.get("/download", (req, res) => {
   const url = req.query.url;
   console.log('url -->',url)
   const stdout1 = exec(`yt-dlp -j -s --no-cache-dir ${url}`);
+  console.log(stdout1);
   const videoInfo = JSON.parse(stdout1);
   const videoId = videoInfo.id;
   const videoTitle = videoId.title;
