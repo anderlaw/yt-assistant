@@ -4,6 +4,7 @@ const fs = require("fs");
 const exec = require("child_process").execSync;
 
 router.get("/download", (req, res) => {
+  console.log('请求进来了')
   const url = req.query.url;
   const stdout1 = exec(`yt-dlp -j -s --no-cache-dir ${url}`);
   const videoInfo = JSON.parse(stdout1);
