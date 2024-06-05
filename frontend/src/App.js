@@ -62,12 +62,14 @@ function App() {
                   } else if (content.indexOf("progress:") === 0) {
                     const progress = content.split("progress:")[1];
                     setProgressTips(progress);
-                  } else if (content.indexOf("data:") === 0) {
+                  }
+                }).then((res) => {
+                  if (res.status === 200 && res.data) {
                     setLoading(false);
                     setProgressTips("");
-                    const progress = content.split("data:")[1];
-                    console.log(`data:`,progress);
-                    const videoInfo = JSON.parse(progress);
+                    const rawSplitData = res.data.split("data:")[1];
+                    const videoInfo = JSON.parse(rawSplitData);
+                    console.log(`data:`, videoInfo);
                     setPlayVideoOpen(true);
                     setCurVideoPlayInfo(videoInfo);
                   }
