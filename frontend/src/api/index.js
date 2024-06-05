@@ -34,6 +34,8 @@ export const writeViewedVideoId = (payload) => {
   );
 };
 
-export const downloadVideoByURL = (url) => {
-  return axios.get(`${baseURL}/download?url=${encodeURIComponent(url)}`);
+export const downloadVideoByURL = (url, onDownloadProgress) => {
+  return axios.get(`${baseURL}/download?url=${encodeURIComponent(url)}`, {
+    onDownloadProgress: onDownloadProgress,
+  });
 };

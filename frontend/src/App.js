@@ -19,6 +19,7 @@ function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [curVideoPlayInfo, setCurVideoPlayInfo] = useState(null);
   const [playVideoOpen, setPlayVideoOpen] = useState(false);
+  const [progressTips, setProgressTips] = useState("");
 
   return (
     <div className="App">
@@ -36,28 +37,47 @@ function App() {
           label="视频链接"
           variant="standard"
         />
-        <LoadingButton
-          loading={loading}
+        <Box
           sx={{
             marginTop: "18px",
-          }}
-          variant="contained"
-          onClick={() => {
-            const url = document.querySelector("#video-url").value.trim();
-            if (url) {
-              setLoading(true);
-              downloadVideoByURL(url).then((res) => {
-                setLoading(false);
-                if (res.status === 200 && res.data) {
-                  setPlayVideoOpen(true);
-                  setCurVideoPlayInfo(res.data);
-                }
-              });
-            }
+            display: "flex",
+            alignItems: "center",
           }}
         >
-          确定
-        </LoadingButton>
+          <LoadingButton
+            loading={loading}
+            variant="contained"
+            onClick={() => {
+              const url = document.querySelector("#video-url").value.trim();
+              if (url) {
+                setLoading(true);
+                let offset = 0;
+                downloadVideoByURL(url, ({ event }) => {
+                  const { responseText } = event.target;
+                  const content = responseText.substring(offset);
+                  offset = responseText.length;
+                  if (content.indexOf("message:") === 0) {
+                    const uMessage = content.split("message:")[1];
+                    setProgressTips(uMessage);
+                  } else if (content.indexOf("progress:") === 0) {
+                    const progress = content.split("progress:")[1];
+                    setProgressTips(progress);
+                  } else if (content.indexOf("data:") === 0) {
+                    setLoading(false);
+                    setProgressTips("");
+                    const progress = content.split("data:")[1];
+                    const videoInfo = JSON.parse(progress);
+                    setPlayVideoOpen(true);
+                    setCurVideoPlayInfo(videoInfo);
+                  }
+                });
+              }
+            }}
+          >
+            确定
+          </LoadingButton>
+          <span style={{ marginLeft: "10px" }}>{progressTips}</span>
+        </Box>
       </Box>
 
       {/* <DrawerComp open={drawerOpen} handleClose={() => setDrawerOpen(false)}>
