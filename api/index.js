@@ -92,7 +92,6 @@ router.get("/download", async (req, res) => {
   console.log("url -->", url);
   res.write("message:" + "查询视频...");
   const stdout1 = await asyncExecCheckVideo(url);
-  res.write("message:" + "视频查询完毕，准备下载...");
   const videoInfo = JSON.parse(stdout1);
   const videoId = videoInfo.id;
   const videoTitle = videoId.title;
@@ -107,7 +106,7 @@ router.get("/download", async (req, res) => {
       ));
 
   if (filenames && filenames.length) {
-    res.end(
+    res.end("data:"+
       JSON.stringify({
         title: videoTitle,
         path: `/${videoId}`,
@@ -115,6 +114,8 @@ router.get("/download", async (req, res) => {
       })
     );
   }
+
+  res.write("message:" + "视频查询完毕，准备下载...");
   // const execString = `yt-dlp https://www.youtube.com/watch?v=${videoId} -f "b[ext=mp4],ba[ext=m4a]" -o "./files/%(id)s/file.%(ext)s"`;
   const downloadOutput = await asyncExecDownloadVideo(
     videoId,
