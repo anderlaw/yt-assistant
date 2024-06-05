@@ -66,6 +66,7 @@ function App() {
                     setLoading(false);
                     setProgressTips("");
                     const progress = content.split("data:")[1];
+                    console.log(`data:`,progress);
                     const videoInfo = JSON.parse(progress);
                     setPlayVideoOpen(true);
                     setCurVideoPlayInfo(videoInfo);
