@@ -41,7 +41,7 @@ export default ({onMenuClick }) => {
           </IconButton>
         )} */}
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Youtube中转站
+          Yt-helper 油管助手
         </Typography>
       </Toolbar>
     </AppBar>
