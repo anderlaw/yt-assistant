@@ -21,6 +21,9 @@ function App() {
   const [playVideoOpen, setPlayVideoOpen] = useState(false);
   const [progressTips, setProgressTips] = useState("");
 
+  const [history, setHistory] = useState(
+    JSON.parse(localStorage.getItem("view-history")) || []
+  );
   return (
     <div className="App">
       <Header onMenuClick={() => setDrawerOpen(true)} />
@@ -69,6 +72,16 @@ function App() {
                     setProgressTips("");
                     const rawSplitData = res.data.split("data:")[1];
                     const videoInfo = JSON.parse(rawSplitData);
+                    //写入本地存储，记录历史
+                    const oldStorage =
+                      JSON.parse(localStorage.getItem("view-history")) || [];
+                    localStorage.setItem(
+                      "view-history",
+                      JSON.stringify([videoInfo].concat(oldStorage))
+                    );
+                    //更新状态
+                    setHistory([videoInfo].concat(oldStorage));
+                    //打印日志
                     console.log(`data:`, videoInfo);
                     setPlayVideoOpen(true);
                     setCurVideoPlayInfo(videoInfo);
@@ -80,6 +93,21 @@ function App() {
             确定
           </LoadingButton>
           <span style={{ marginLeft: "10px" }}>{progressTips}</span>
+        </Box>
+        <Box>
+          <p>最近观看</p>
+          <ul>
+            {history.map((item, index) => {
+              return (
+                <li style={{ fontSize: "18px" }} key={index}>
+                  <a href="javascript:void(0)" onClick={()=>{
+                    setPlayVideoOpen(true);
+                    setCurVideoPlayInfo(item);
+                  }}>{item.title}</a>
+                </li>
+              );
+            })}
+          </ul>
         </Box>
       </Box>
 
