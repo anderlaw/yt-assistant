@@ -113,6 +113,8 @@ router.get("/download", async (req, res) => {
         filenames,
       })
     );
+    //fix: Error [ERR_STREAM_WRITE_AFTER_END]: write after end
+    return;
   }
 
   res.write("message:" + "视频查询完毕，准备下载...");
