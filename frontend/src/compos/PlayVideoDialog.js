@@ -18,8 +18,9 @@ export default ({ videoInfo, open, handleClose }) => {
           return;
         }
         //播放视频
-        const m3u8_url = `http://${window.location.hostname}/media${videoInfo.path}/video.m3u8`;
-        const file_url = `http://${window.location.hostname}/media${videoInfo.path}/file.mp4`;
+        const protocol = window.location.protocol;
+        const m3u8_url = `${protocol}//${window.location.hostname}/media${videoInfo.path}/video.m3u8`;
+        const file_url = `${protocol}//${window.location.hostname}/media${videoInfo.path}/file.mp4`;
         const player = new Plyr("#video-player");
         setPlayer(player);
         if (!window.Hls.isSupported()) {
