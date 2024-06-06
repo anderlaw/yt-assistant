@@ -11,7 +11,7 @@ import CloseIcon from "@mui/icons-material/Close";
 export default ({ videoInfo, open, handleClose }) => {
   const [player, setPlayer] = useState(null);
   useEffect(() => {
-    if (videoInfo && open) {
+    if (videoInfo) {
       setTimeout(() => {
         const videoEle = document.querySelector("#video-player");
         if (!videoEle) {
@@ -32,10 +32,11 @@ export default ({ videoInfo, open, handleClose }) => {
           hls.attachMedia(videoEle);
           window.hls = hls;
         }
-        player.play();
+        // 取消自动播放
+        // player.play();
       });
     }
-  }, [videoInfo, open]);
+  }, [videoInfo]);
   useEffect(() => {
     if (player && !open) {
       player.stop();

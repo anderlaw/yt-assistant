@@ -70,8 +70,11 @@ function App() {
                     const rawSplitData = res.data.split("data:")[1];
                     const videoInfo = JSON.parse(rawSplitData);
                     console.log(`data:`, videoInfo);
-                    setPlayVideoOpen(true);
                     setCurVideoPlayInfo(videoInfo);
+                    // 延迟打开播放框，让数据先加载一会
+                    setTimeout(() => {
+                      setPlayVideoOpen(true);
+                    }, 2000);
                   }
                 });
               }
