@@ -94,8 +94,7 @@ router.get("/download", async (req, res) => {
   const stdout1 = await asyncExecCheckVideo(url);
   const videoInfo = JSON.parse(stdout1);
   const videoId = videoInfo.id;
-  const videoTitle = videoId.title;
-
+  const videoTitle = videoInfo.title;
   //读取本地目录，看是否有缓存视频
   let filenames = null;
   fs.existsSync(`./files/${videoId}`) &&
