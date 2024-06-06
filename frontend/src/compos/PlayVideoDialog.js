@@ -45,7 +45,7 @@ export default ({ videoInfo, open, handleClose }) => {
   }, [player, open]);
   return (
     <Dialog open={open}>
-      <DialogTitle>播放视频</DialogTitle>
+      <DialogTitle>{videoInfo?.title || '播放视频'}</DialogTitle>
       <IconButton
         aria-label="close"
         onClick={handleClose}
@@ -60,6 +60,7 @@ export default ({ videoInfo, open, handleClose }) => {
       </IconButton>
       <DialogContent
         sx={{
+          padding:'0px',
           minWidth: "300px",
           maxWidth: "800px",
         }}
