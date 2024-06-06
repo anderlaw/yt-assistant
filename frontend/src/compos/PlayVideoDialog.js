@@ -32,7 +32,8 @@ export default ({ videoInfo, open, handleClose }) => {
           hls.attachMedia(videoEle);
           window.hls = hls;
         }
-        player.play();
+        //取消自动播放
+        // player.play();
       });
     }
   }, [videoInfo, open]);
