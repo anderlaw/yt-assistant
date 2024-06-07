@@ -5,7 +5,8 @@ const { spawn } = require("child_process");
 const asyncExecDownloadVideo = (videoId, onProgress) => {
   return new Promise((resolve, reject) => {
     const lsProcess = spawn("yt-dlp", [
-      '--cookies ./cookie.txt',
+      "--cookies",
+      "./cookie.txt",
       `https://www.youtube.com/watch?v=${videoId}`,
       "-f",
       "b[ext=mp4]",
@@ -33,7 +34,14 @@ const asyncExecDownloadVideo = (videoId, onProgress) => {
 };
 const asyncExecCheckVideo = (url, onError) => {
   return new Promise((resolve, reject) => {
-    const lsProcess = spawn("yt-dlp", ['--cookies ./cookie.txt',,url, "-j", "-s", "--no-cache-dir"]);
+    const lsProcess = spawn("yt-dlp", [
+      "--cookies",
+      "./cookie.txt",
+      url,
+      "-j",
+      "-s",
+      "--no-cache-dir",
+    ]);
     let outChunk = "";
     lsProcess.stdout.on("data", (data) => {
       console.log("stdout", data.toString());
