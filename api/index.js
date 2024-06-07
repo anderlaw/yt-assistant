@@ -42,9 +42,11 @@ const asyncExecCheckVideo = (url) => {
       console.log(`stderr: ${data}`);
     });
     lsProcess.on("exit", (code, message) => {
+      console.log(`exit: ${code}`);
       if (code === 0) {
         resolve(outChunk);
       } else {
+
         reject(message);
       }
     });
