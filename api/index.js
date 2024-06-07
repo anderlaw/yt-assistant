@@ -149,7 +149,7 @@ router.get("/download", async (req, res) => {
         })
     );
   } catch (e) {
-    res.end("exit:" + e);
+    res.end("exit:" + JSON.stringify(e || null));
   }
 });
 module.exports = router;
