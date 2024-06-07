@@ -62,7 +62,7 @@ const asyncExec = (videoId) => {
       "-segment_format",
       "mpegts",
       "-segment_time",
-      "10",
+      "5",
       "-segment_list",
       `./files/${videoId}/video.m3u8`,
       `./files/${videoId}/video%05d.ts`,
