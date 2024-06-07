@@ -149,7 +149,7 @@ router.get("/download", async (req, res) => {
         })
     );
   } catch (e) {
-    res.status(500).send("error: " + e);
+    res.end("exit:" + e);
   }
 });
 module.exports = router;
