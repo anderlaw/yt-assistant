@@ -85,67 +85,64 @@ const asyncExec = (videoId) => {
   });
 };
 router.get("/download", async (req, res) => {
-  //设置流式传输标头
-  // res.setHeader("Transfer-Encoding", "chunked");
-  res.setHeader("Content-type", "application/octet-stream");
-  const url = req.query.url;
-  console.log("url -->", url);
-  res.write("message:" + "查询视频...");
-  let stdout1 = null;
-  try{
-    stdout1 = await asyncExecCheckVideo(url);
-  }catch(e){
-    console.log('error:',e)
-  }
-  if(stdout1 === null){
-    return 
-  }
-  const videoInfo = JSON.parse(stdout1);
-  const videoId = videoInfo.id;
-  const videoTitle = videoInfo.title;
-  //读取本地目录，看是否有缓存视频
-  let filenames = null;
-  fs.existsSync(`./files/${videoId}`) &&
-    (filenames = fs
-      .readdirSync(`./files/${videoId}`)
-      .filter(
-        (name) => name.indexOf(".") !== 0 && name.indexOf("part") === -1
-      ));
+  try {
+    //设置流式传输标头
+    // res.setHeader("Transfer-Encoding", "chunked");
+    res.setHeader("Content-type", "application/octet-stream");
+    const url = req.query.url;
+    console.log("url -->", url);
+    res.write("message:" + "查询视频...");
+    const stdout1 = await asyncExecCheckVideo(url);
+    const videoInfo = JSON.parse(stdout1);
+    const videoId = videoInfo.id;
+    const videoTitle = videoInfo.title;
+    //读取本地目录，看是否有缓存视频
+    let filenames = null;
+    fs.existsSync(`./files/${videoId}`) &&
+      (filenames = fs
+        .readdirSync(`./files/${videoId}`)
+        .filter(
+          (name) => name.indexOf(".") !== 0 && name.indexOf("part") === -1
+        ));
 
-  if (filenames && filenames.length) {
-    res.end("data:"+
-      JSON.stringify({
-        title: videoTitle,
-        path: `/${videoId}`,
-        filenames,
-      })
-    );
-    //fix: Error [ERR_STREAM_WRITE_AFTER_END]: write after end
-    return;
-  }
-
-  res.write("message:" + "视频查询完毕，准备下载...");
-  // const execString = `yt-dlp https://www.youtube.com/watch?v=${videoId} -f "b[ext=mp4],ba[ext=m4a]" -o "./files/%(id)s/file.%(ext)s"`;
-  const downloadOutput = await asyncExecDownloadVideo(
-    videoId,
-    (progressStr) => {
-      res.write("progress:" + progressStr);
+    if (filenames && filenames.length) {
+      res.end(
+        "data:" +
+          JSON.stringify({
+            title: videoTitle,
+            path: `/${videoId}`,
+            filenames,
+          })
+      );
+      //fix: Error [ERR_STREAM_WRITE_AFTER_END]: write after end
+      return;
     }
-  );
-  res.write("message:" + "视频下载完毕，转码中...");
-  //转码为m3u8格式的文件
-  const transcodeOutput = await asyncExec(videoId);
-  // todo: audio file
-  // exec(`ffmpeg -i ./files/${videoId}/file.mp4 -segment_time 10 ./files/${videoId}/video.m3u8`, {
-  //   maxBuffer: 1024 * 1024 * 1024,
-  // });
-  res.end(
-    "data:" +
-      JSON.stringify({
-        title: videoTitle,
-        path: `/${videoId}`,
-        filenames: fs.readdirSync(`./files/${videoId}`),
-      })
-  );
+
+    res.write("message:" + "视频查询完毕，准备下载...");
+    // const execString = `yt-dlp https://www.youtube.com/watch?v=${videoId} -f "b[ext=mp4],ba[ext=m4a]" -o "./files/%(id)s/file.%(ext)s"`;
+    const downloadOutput = await asyncExecDownloadVideo(
+      videoId,
+      (progressStr) => {
+        res.write("progress:" + progressStr);
+      }
+    );
+    res.write("message:" + "视频下载完毕，转码中...");
+    //转码为m3u8格式的文件
+    const transcodeOutput = await asyncExec(videoId);
+    // todo: audio file
+    // exec(`ffmpeg -i ./files/${videoId}/file.mp4 -segment_time 10 ./files/${videoId}/video.m3u8`, {
+    //   maxBuffer: 1024 * 1024 * 1024,
+    // });
+    res.end(
+      "data:" +
+        JSON.stringify({
+          title: videoTitle,
+          path: `/${videoId}`,
+          filenames: fs.readdirSync(`./files/${videoId}`),
+        })
+    );
+  } catch (e) {
+    console.log("error:", e);
+  }
 });
 module.exports = router;
