@@ -19,7 +19,7 @@ const asyncExecDownloadVideo = (videoId, onProgress) => {
       }
     });
     lsProcess.stderr.on("data", (data) => {
-      console.log('stderr',data)
+      console.log("stderr", data);
     });
     lsProcess.on("exit", (code) => {
       if (code === 0) {
@@ -30,7 +30,7 @@ const asyncExecDownloadVideo = (videoId, onProgress) => {
     });
   });
 };
-const asyncExecCheckVideo = (url) => {
+const asyncExecCheckVideo = (url, onError) => {
   return new Promise((resolve, reject) => {
     const lsProcess = spawn("yt-dlp", [url, "-j", "-s", "--no-cache-dir"]);
     let outChunk = "";
@@ -40,14 +40,15 @@ const asyncExecCheckVideo = (url) => {
     });
     lsProcess.stderr.on("data", (data) => {
       console.log(`stderr: ${data}`);
+      //fix: 有些视频被删除或者违规时检查会报错并exit
+      onError(data);
     });
     lsProcess.on("exit", (code, message) => {
       console.log(`exit: ${code}`);
       if (code === 0) {
         resolve(outChunk);
       } else {
-
-        reject(message);
+        reject();
       }
     });
   });
@@ -96,7 +97,9 @@ router.get("/download", async (req, res) => {
     const url = req.query.url;
     console.log("url -->", url);
     res.write("message:" + "查询视频...");
-    const stdout1 = await asyncExecCheckVideo(url);
+    const stdout1 = await asyncExecCheckVideo(url, (errMessage) => {
+      res.write("message:" + errMessage);
+    });
     const videoInfo = JSON.parse(stdout1);
     const videoId = videoInfo.id;
     const videoTitle = videoInfo.title;
