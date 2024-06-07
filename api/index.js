@@ -18,7 +18,9 @@ const asyncExecDownloadVideo = (videoId, onProgress) => {
         onProgress(str.match(processReg)[1]);
       }
     });
-    lsProcess.stderr.on("data", (data) => {});
+    lsProcess.stderr.on("data", (data) => {
+      console.log('stderr',data)
+    });
     lsProcess.on("exit", (code) => {
       if (code === 0) {
         resolve();
@@ -33,12 +35,12 @@ const asyncExecCheckVideo = (url) => {
     const lsProcess = spawn("yt-dlp", [url, "-j", "-s", "--no-cache-dir"]);
     let outChunk = "";
     lsProcess.stdout.on("data", (data) => {
-      console.log("stdout", data);
+      console.log("stdout", data.toString());
       outChunk += data.toString();
     });
-    // lsProcess.stderr.on("data", (data) => {
-    //   console.log(`stdout: ${data}`);
-    // });
+    lsProcess.stderr.on("data", (data) => {
+      console.log(`stderr: ${data}`);
+    });
     lsProcess.on("exit", (code, message) => {
       if (code === 0) {
         resolve(outChunk);
