@@ -65,28 +65,38 @@ function App() {
                   } else if (content.indexOf("progress:") === 0) {
                     const progress = content.split("progress:")[1];
                     setProgressTips(progress);
+                  }else if(content.indexOf("error:") === 0) {
+                    const progress = content.split("error:")[1];
+                    setProgressTips(progress);
                   }
-                }).then((res) => {
-                  if (res.status === 200 && res.data) {
+                }).then(
+                  (res) => {
+                    if (res.status === 200 && res.data) {
+                      setLoading(false);
+                      setProgressTips("");
+                      const rawSplitData = res.data.split("data:")[1];
+                      const videoInfo = JSON.parse(rawSplitData);
+                      //写入本地存储，记录历史
+                      const oldStorage =
+                        JSON.parse(localStorage.getItem("view-history")) || [];
+                      localStorage.setItem(
+                        "view-history",
+                        JSON.stringify([videoInfo].concat(oldStorage))
+                      );
+                      //更新状态
+                      setHistory([videoInfo].concat(oldStorage));
+                      //打印日志
+                      console.log(`data:`, videoInfo);
+                      setPlayVideoOpen(true);
+                      setCurVideoPlayInfo(videoInfo);
+                    }
+                  },
+                  (err) => {
                     setLoading(false);
                     setProgressTips("");
-                    const rawSplitData = res.data.split("data:")[1];
-                    const videoInfo = JSON.parse(rawSplitData);
-                    //写入本地存储，记录历史
-                    const oldStorage =
-                      JSON.parse(localStorage.getItem("view-history")) || [];
-                    localStorage.setItem(
-                      "view-history",
-                      JSON.stringify([videoInfo].concat(oldStorage))
-                    );
-                    //更新状态
-                    setHistory([videoInfo].concat(oldStorage));
-                    //打印日志
-                    console.log(`data:`, videoInfo);
-                    setPlayVideoOpen(true);
-                    setCurVideoPlayInfo(videoInfo);
+                    console.log(err);
                   }
-                });
+                );
               }
             }}
           >
@@ -100,10 +110,15 @@ function App() {
             {history.map((item, index) => {
               return (
                 <li style={{ fontSize: "18px" }} key={index}>
-                  <a href="javascript:void(0)" onClick={()=>{
-                    setPlayVideoOpen(true);
-                    setCurVideoPlayInfo(item);
-                  }}>{item.title}</a>
+                  <a
+                    href="javascript:void(0)"
+                    onClick={() => {
+                      setPlayVideoOpen(true);
+                      setCurVideoPlayInfo(item);
+                    }}
+                  >
+                    {item.title}
+                  </a>
                 </li>
               );
             })}
