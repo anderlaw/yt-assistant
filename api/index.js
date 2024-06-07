@@ -91,7 +91,15 @@ router.get("/download", async (req, res) => {
   const url = req.query.url;
   console.log("url -->", url);
   res.write("message:" + "查询视频...");
-  const stdout1 = await asyncExecCheckVideo(url);
+  let stdout1 = null;
+  try{
+    stdout1 = await asyncExecCheckVideo(url);
+  }catch(e){
+    console.log('error:',e)
+  }
+  if(stdout1 === null){
+    return 
+  }
   const videoInfo = JSON.parse(stdout1);
   const videoId = videoInfo.id;
   const videoTitle = videoInfo.title;
