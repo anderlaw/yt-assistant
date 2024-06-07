@@ -65,7 +65,7 @@ function App() {
                   } else if (content.indexOf("progress:") === 0) {
                     const progress = content.split("progress:")[1];
                     setProgressTips(progress);
-                  }else if(content.indexOf("error:") === 0) {
+                  } else if (content.indexOf("error:") === 0) {
                     const progress = content.split("error:")[1];
                     setProgressTips(progress);
                   }
@@ -75,6 +75,9 @@ function App() {
                       setLoading(false);
                       setProgressTips("");
                       const rawSplitData = res.data.split("data:")[1];
+                      if (!rawSplitData) {
+                        return;
+                      }
                       const videoInfo = JSON.parse(rawSplitData);
                       //写入本地存储，记录历史
                       const oldStorage =
