@@ -69,33 +69,32 @@ function App() {
                     const progress = content.split("error:")[1];
                     setProgressTips(progress);
                   }
-                }).then(
-                  (res) => {
-                    if (res.status === 200 && res.data && res.data.indexOf("data:") > -1) {
-                      setLoading(false);
-                      setProgressTips("");
-                      const rawSplitData = res.data.split("data:")[1];
-                      const videoInfo = JSON.parse(rawSplitData);
-                      //写入本地存储，记录历史
-                      const oldStorage =
-                        JSON.parse(localStorage.getItem("view-history")) || [];
-                      localStorage.setItem(
-                        "view-history",
-                        JSON.stringify([videoInfo].concat(oldStorage))
-                      );
-                      //更新状态
-                      setHistory([videoInfo].concat(oldStorage));
-                      //打印日志
-                      console.log(`data:`, videoInfo);
-                      setPlayVideoOpen(true);
-                      setCurVideoPlayInfo(videoInfo);
-                    }
-                  },
-                  (err) => {
-                    setLoading(false);
-                    console.log(err);
+                }).then((res) => {
+                  //fix:关闭loading效果
+                  setLoading(false);
+                  if (
+                    res.status === 200 &&
+                    res.data &&
+                    res.data.indexOf("data:") > -1
+                  ) {
+                    setProgressTips("");
+                    const rawSplitData = res.data.split("data:")[1];
+                    const videoInfo = JSON.parse(rawSplitData);
+                    //写入本地存储，记录历史
+                    const oldStorage =
+                      JSON.parse(localStorage.getItem("view-history")) || [];
+                    localStorage.setItem(
+                      "view-history",
+                      JSON.stringify([videoInfo].concat(oldStorage))
+                    );
+                    //更新状态
+                    setHistory([videoInfo].concat(oldStorage));
+                    //打印日志
+                    console.log(`data:`, videoInfo);
+                    setPlayVideoOpen(true);
+                    setCurVideoPlayInfo(videoInfo);
                   }
-                );
+                });
               }
             }}
           >
