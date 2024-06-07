@@ -71,13 +71,10 @@ function App() {
                   }
                 }).then(
                   (res) => {
-                    if (res.status === 200 && res.data) {
+                    if (res.status === 200 && res.data && res.data.indexOf("data:") > -1) {
                       setLoading(false);
                       setProgressTips("");
                       const rawSplitData = res.data.split("data:")[1];
-                      if (!rawSplitData) {
-                        return;
-                      }
                       const videoInfo = JSON.parse(rawSplitData);
                       //写入本地存储，记录历史
                       const oldStorage =
@@ -96,7 +93,6 @@ function App() {
                   },
                   (err) => {
                     setLoading(false);
-                    setProgressTips("");
                     console.log(err);
                   }
                 );
