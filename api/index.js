@@ -98,7 +98,7 @@ router.get("/download", async (req, res) => {
     console.log("url -->", url);
     res.write("message:" + "查询视频...");
     const stdout1 = await asyncExecCheckVideo(url, (errMessage) => {
-      res.write("message:" + errMessage);
+      res.write("error:" + errMessage);
     });
     const videoInfo = JSON.parse(stdout1);
     const videoId = videoInfo.id;
@@ -149,7 +149,7 @@ router.get("/download", async (req, res) => {
         })
     );
   } catch (e) {
-    console.log("error:", e);
+    res.status(500).send("error: " + e);
   }
 });
 module.exports = router;
